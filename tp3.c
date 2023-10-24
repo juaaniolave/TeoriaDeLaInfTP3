@@ -4,6 +4,33 @@
 #include <math.h>
 
 #define MAX_ABECEDARIO 256
+
+
+typedef struct NodoHuffman {
+    char caracter;
+    int frecuencia;
+    struct NodoHuffman *izquierda, *derecha;
+} NodoHuffman;
+
+// Estructura para representar un nodo de la cola de prioridad
+typedef struct {
+    NodoHuffman *nodo;
+} ElementoColaPrioridad;
+
+// Cola de prioridad para construir el árbol de Huffman
+typedef struct {
+    ElementoColaPrioridad *elementos;
+    int capacidad;
+    int tamano;
+} ColaPrioridad;
+
+
+
+
+
+
+
+NodoHuffman *nuevoNodo(char caracter, int frecuencia);
 float logaritmo(int,float);
 void lee_archivo (char*, unsigned short[], unsigned int*);
 void completaPunteroAbecedario(unsigned char[],unsigned short []);
@@ -16,6 +43,7 @@ int main(int argc, char *argv[]) {
    unsigned short abecedario[MAX_ABECEDARIO]={0};
    unsigned int totalLetras=0;
    unsigned char punteroAbecedario[MAX_ABECEDARIO]={0};
+   unsigned char* tablaHuffman;
 
    for (int i = 1; i < argc; i++) {
       char *param = argv[i];
@@ -34,22 +62,37 @@ int main(int argc, char *argv[]) {
         printf("%d ",punteroAbecedario[i]);
     }
     
+    tablaHuffman=creaTablaHuffman();
+
     creaArchivoBinario(nombre_archivo,punteroAbecedario);
 
 
 }
 
+unsigned char* creaTablaHuffman(){
+
+}
+
 void creaArchivoBinario(char *nombre_archivo, unsigned char punteroAbecedario[]){
     
-    FILE* archivo= fopen("compressed.bin","wb");
+    FILE* archivoBin= fopen("compressed.bin","wb");
+    FILE* archivoTxt= fopen(nombre_archivo,"rt");
+    char letra;
 
-    if (archivo==NULL){
+    if (archivoBin==NULL){
         printf("Ocurrió un problema al crear el archivo");
         exit(-2);
     }
     for (int i =0; i<MAX_ABECEDARIO;i++){
-        fwrite(punteroAbecedario, sizeof(char), 1, archivo);
+        fwrite(punteroAbecedario, sizeof(char), 1, archivoBin);
     }
+
+    while (fscanf(archivoTxt, "%c", &letra)!=EOF) {
+        fwrite()
+    }
+
+
+    fclose(archivoBin);
 }
 
 void completaPunteroAbecedario(unsigned char punteroAbecedario[],unsigned short abecedario[]){
@@ -93,7 +136,14 @@ void lee_archivo (char *nombre_archivo, unsigned short abecedario[],unsigned int
     fclose(archivo); 
 }
 
-   float logaritmo (int base, float num) {
+float logaritmo (int base, float num) {
       return log10(num) / log10(base);
    }
 
+NodoHuffman *nuevoNodo(char caracter, int frecuencia) {
+    NodoHuffman *nodo = (NodoHuffman *)malloc(sizeof(NodoHuffman));
+    nodo->caracter = caracter;
+    nodo->frecuencia = frecuencia;
+    nodo->izquierda = nodo->derecha = NULL;
+    return nodo;
+}
