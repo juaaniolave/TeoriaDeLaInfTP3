@@ -15,12 +15,12 @@ typedef struct NodoHuffman {
 typedef NodoHuffman* ArbolHuffman;
 
 void ordenaArrayNodos(ArbolHuffman[]);
-NodoHuffman *nuevoNodo(char caracter, int frecuencia);
+NodoHuffman *nuevoNodo(char caracter, float frecuencia);
 float logaritmo(int,float);
 void lee_archivo (char*, unsigned short[], unsigned int*);
 void completaPunteroAbecedario(unsigned char[],unsigned short []);
 void creaArchivoBinario(char*, unsigned char[]);
-void creaArrayNodos(ArbolHuffman[], int, unsigned short[]);
+void creaArrayNodos(ArbolHuffman[], unsigned short[]);
 
 
 
@@ -33,8 +33,7 @@ int main(int argc, char *argv[]) {
    unsigned int totalLetrasDiferentes=0;
    unsigned char punteroAbecedario[MAX_ABECEDARIO]={0};
    unsigned char* tablaHuffman;
-   ArbolHuffman arrayNodos;
-
+   
    for (int i = 1; i < argc; i++) {
       char *param = argv[i];
       if (strstr(param, extension_txt) != NULL)  //.bin
@@ -46,27 +45,30 @@ int main(int argc, char *argv[]) {
         printf("%d ",abecedario[i]);
     }
 
+    ArbolHuffman arrayNodos[totalLetrasDiferentes];
+
     /*completaPunteroAbecedario(punteroAbecedario,abecedario);
 
     for (int i = 0 ; i<MAX_ABECEDARIO;i++){
         printf("%d ",punteroAbecedario[i]);
     }*/
 
-    creaArrayNodos(arrayNodos, totalLetrasDiferentes,abecedario);
+    creaArrayNodos(arrayNodos, abecedario);
+
+    for (int i=0;i< totalLetrasDiferentes;i++){
+        printf(" %c, %f\n", arrayNodos[i]->caracter, arrayNodos[i]->frecuencia);
+    }
+
     
-    tablaHuffman=creaTablaHuffman();
-
-    creaArchivoBinario(nombre_archivo,punteroAbecedario);
 
 
-}
+   // creaArchivoBinario(nombre_archivo,punteroAbecedario);
 
-unsigned char* creaTablaHuffman(){
-
+return 0;
 }
 
 void creaArchivoBinario(char *nombre_archivo, unsigned char punteroAbecedario[]){
-    
+    /*
     FILE* archivoBin= fopen("compressed.bin","wb");
     FILE* archivoTxt= fopen(nombre_archivo,"rt");
     char letra;
@@ -85,6 +87,7 @@ void creaArchivoBinario(char *nombre_archivo, unsigned char punteroAbecedario[])
 
 
     fclose(archivoBin);
+    */
 }
 
 /*void completaPunteroAbecedario(unsigned char punteroAbecedario[],unsigned short abecedario[]){
@@ -111,7 +114,6 @@ void creaArchivoBinario(char *nombre_archivo, unsigned char punteroAbecedario[])
 
 }*/
 
-
 void lee_archivo (char *nombre_archivo, unsigned short abecedario[],unsigned int *totalLetrasDiferentes) {
     
     unsigned char letra;
@@ -122,8 +124,8 @@ void lee_archivo (char *nombre_archivo, unsigned short abecedario[],unsigned int
         exit (-1);
     }
     while (fscanf(archivo, "%c", &letra)!=EOF) {
-        if(!abecedario[letra]++){
-            *totalLetrasDiferentes++;
+        if(abecedario[letra]++==0){
+            (*totalLetrasDiferentes)++;
         }
     }
     fclose(archivo); 
@@ -133,7 +135,7 @@ float logaritmo (int base, float num) {
       return log10(num) / log10(base);
    }
 
-NodoHuffman *nuevoNodo(char caracter, int frecuencia) {
+NodoHuffman *nuevoNodo(char caracter, float frecuencia) {
     NodoHuffman *nodo = (NodoHuffman *)malloc(sizeof(NodoHuffman));
     nodo->caracter = caracter;
     nodo->frecuencia = frecuencia;
@@ -143,40 +145,43 @@ NodoHuffman *nuevoNodo(char caracter, int frecuencia) {
 
 void ordenaArrayNodos(ArbolHuffman arrayNodos[]){
 
-    int longitud = sizeof(arrayNodos) / sizeof(arrayNodos[0]);
+    int longitud = 0;
+
+    while (arrayNodos[longitud]!=NULL){
+        longitud++;
+    }
 
     for (int i = 0; i < longitud-1; i++) {
         for (int j = 0; j < longitud-i-1; j++) {
-            if (arrayNodos[j]->frecuencia > arrayNodos[j+1]->frecuencia) {
+            if (arrayNodos[j]->frecuencia < arrayNodos[j+1]->frecuencia) {
                 swap(&arrayNodos[j], &arrayNodos[j+1]);
             }
         }
     }
 }
 
-void creaArrayNodos(ArbolHuffman* arrayNodos, int totalLetrasDiferentes, unsigned short abecedario[]){
+void creaArrayNodos(ArbolHuffman arrayNodos[], unsigned short abecedario[]){
 
     int totalLetras=0;
-    ArbolHuffman aux[totalLetrasDiferentes];
-    ArbolHuffman nodo;
     int tamanoArray =0;
 
     for (int i = 0; i < MAX_ABECEDARIO; i++){
         totalLetras+=abecedario[i];
     }
 
-    for (int i = 0; i<totalLetrasDiferentes;i++){
+    for (int i = 0; i<MAX_ABECEDARIO;i++){
         if (abecedario[i] !=0){
-            nodo=nuevoNodo(i,(float)abecedario[i]/totalLetrasDiferentes);
+            arrayNodos[tamanoArray++]=nuevoNodo(i,abecedario[i]/(float)totalLetras);
         }
-
     }
-
-
+    if (tamanoArray!=MAX_ABECEDARIO){
+        arrayNodos[tamanoArray]=NULL;
+    }
+    ordenaArrayNodos(arrayNodos);
 }
 
 void swap(ArbolHuffman *a, ArbolHuffman *b) {
-    ArbolHuffman temp = *a;
+    ArbolHuffman* temp = *a;
     *a = *b;
     *b = temp;
 }
