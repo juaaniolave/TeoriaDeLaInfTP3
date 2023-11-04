@@ -21,7 +21,10 @@ void lee_archivo (char*, unsigned short[], unsigned int*);
 void completaPunteroAbecedario(unsigned char[],unsigned short []);
 void creaArchivoBinario(char*, unsigned char[]);
 void creaArrayNodos(ArbolHuffman[], unsigned short[]);
-
+void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]);
+void muestraArbol(ArbolHuffman arbol);
+void swap(ArbolHuffman *a, ArbolHuffman *b);
+void creaTablaHuffman(short tablaHuffman[][2], unsigned int totalLetrasDiferentes, ArbolHuffman arbol);
 
 
 
@@ -32,7 +35,7 @@ int main(int argc, char *argv[]) {
    unsigned short abecedario[MAX_ABECEDARIO]={0};
    unsigned int totalLetrasDiferentes=0;
    unsigned char punteroAbecedario[MAX_ABECEDARIO]={0};
-   unsigned char* tablaHuffman;
+
    
    for (int i = 1; i < argc; i++) {
       char *param = argv[i];
@@ -54,18 +57,73 @@ int main(int argc, char *argv[]) {
     }*/
 
     creaArrayNodos(arrayNodos, abecedario);
-
+/*
     for (int i=0;i< totalLetrasDiferentes;i++){
         printf(" %c, %f\n", arrayNodos[i]->caracter, arrayNodos[i]->frecuencia);
     }
+*/
+    creaArbolHuffmanFinal(arrayNodos);
+   // muestraArbol(arrayNodos[0]);
+
+    short tablaHuffman[totalLetrasDiferentes][2];
 
     
+
+    creaTablaHuffman(tablaHuffman,totalLetrasDiferentes,arrayNodos[0]);
+
 
 
    // creaArchivoBinario(nombre_archivo,punteroAbecedario);
 
 return 0;
 }
+
+
+void muestraArbol(ArbolHuffman arbol){
+
+    if(arbol!=NULL){
+        
+            
+        muestraArbol(arbol->izq);
+        if(arbol->caracter!=-1){
+            printf("%c %f\n", arbol->caracter, arbol->frecuencia);
+        }
+        muestraArbol(arbol->der);
+
+        
+    }
+
+}
+
+void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]){
+
+    int longitud=0;
+
+    ArbolHuffman nodo;
+    while(arrayNodos[longitud+1]!=NULL){
+        longitud++;
+    }
+
+
+    while(longitud>0){
+
+        nodo=nuevoNodo(-1,arrayNodos[longitud]->frecuencia+arrayNodos[longitud-1]->frecuencia);
+        nodo->der=arrayNodos[longitud];
+        nodo->izq =arrayNodos[longitud-1];
+        arrayNodos[longitud-1]=nodo;
+        arrayNodos[longitud]=NULL;
+        ordenaArrayNodos(arrayNodos);
+        longitud--;
+    }
+
+}
+
+void creaTablaHuffman(short tablaHuffman[][2], unsigned int totalLetrasDiferentes, ArbolHuffman arbol){
+
+
+
+}
+
 
 void creaArchivoBinario(char *nombre_archivo, unsigned char punteroAbecedario[]){
     /*
