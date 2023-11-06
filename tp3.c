@@ -11,6 +11,11 @@ typedef struct NodoHuffman {
     struct NodoHuffman *izq, *der;
 } NodoHuffman;
 
+typedef struct {
+    char codigo[8];
+    char letra;
+} datosTablaHuffman ;
+
 
 typedef NodoHuffman* ArbolHuffman;
 
@@ -24,7 +29,7 @@ void creaArrayNodos(ArbolHuffman[], unsigned short[]);
 void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]);
 void muestraArbol(ArbolHuffman arbol);
 void swap(ArbolHuffman *a, ArbolHuffman *b);
-void creaTablaHuffman(short tablaHuffman[][2], unsigned int totalLetrasDiferentes, ArbolHuffman arbol);
+void creaTablaHuffman(datosTablaHuffman tablaHuffman[], unsigned int totalLetrasDiferentes, ArbolHuffman arbol);
 
 
 
@@ -65,7 +70,9 @@ int main(int argc, char *argv[]) {
     creaArbolHuffmanFinal(arrayNodos);
    // muestraArbol(arrayNodos[0]);
 
-    short tablaHuffman[totalLetrasDiferentes][2];
+    
+
+    datosTablaHuffman tablaHuffman[totalLetrasDiferentes];
 
     
 
@@ -118,8 +125,10 @@ void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]){
 
 }
 
-void creaTablaHuffman(short tablaHuffman[][2], unsigned int totalLetrasDiferentes, ArbolHuffman arbol){
+void creaTablaHuffman(datosTablaHuffman tablaHuffman[], unsigned int totalLetrasDiferentes, ArbolHuffman arbol){
 
+    ArbolHuffman aux= arbol;
+    
 
 
 }
