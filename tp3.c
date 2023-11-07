@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #define MAX_ABECEDARIO 256
+#define MAX_CODIGO 256
 
 
 typedef struct NodoHuffman {
@@ -12,7 +13,7 @@ typedef struct NodoHuffman {
 } NodoHuffman;
 
 typedef struct {
-    char codigo[8];
+    char codigo[MAX_CODIGO];
     char letra;
 } datosTablaHuffman ;
 
@@ -29,8 +30,9 @@ void creaArrayNodos(ArbolHuffman[], unsigned short[]);
 void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]);
 void muestraArbol(ArbolHuffman arbol);
 void swap(ArbolHuffman *a, ArbolHuffman *b);
-void creaTablaHuffman(datosTablaHuffman tablaHuffman[], unsigned int totalLetrasDiferentes, ArbolHuffman arbol);
-
+void creaTablaHuffman(ArbolHuffman nodo, char* codigo, int longitudCodigo,datosTablaHuffman tablaHuffman[], int* indice);
+void ordenaTablaHuffman( datosTablaHuffman tablaHuffman[], int tamano);
+void intercambiar(datosTablaHuffman* a, datosTablaHuffman* b);
 
 
 int main(int argc, char *argv[]) {
@@ -49,10 +51,6 @@ int main(int argc, char *argv[]) {
    }
     lee_archivo(nombre_archivo, abecedario, &totalLetrasDiferentes);
 
-    for (int i = 0 ; i<MAX_ABECEDARIO;i++){
-        printf("%d ",abecedario[i]);
-    }
-
     ArbolHuffman arrayNodos[totalLetrasDiferentes];
 
     /*completaPunteroAbecedario(punteroAbecedario,abecedario);
@@ -70,21 +68,43 @@ int main(int argc, char *argv[]) {
     creaArbolHuffmanFinal(arrayNodos);
    // muestraArbol(arrayNodos[0]);
 
-    
-
     datosTablaHuffman tablaHuffman[totalLetrasDiferentes];
+ 
+    char codigo[MAX_CODIGO];
+    int indice = 0;
+    creaTablaHuffman(arrayNodos[0], codigo, 0, tablaHuffman, &indice);
 
-    
 
-    creaTablaHuffman(tablaHuffman,totalLetrasDiferentes,arrayNodos[0]);
+    // ordenaTablaHuffman(tablaHuffman, totalLetrasDiferentes);
 
+    for (int i = 0 ; i< totalLetrasDiferentes ; i++){
 
+        printf ("%c, %s \n", tablaHuffman[i].letra, tablaHuffman[i].codigo);
+
+    }
 
    // creaArchivoBinario(nombre_archivo,punteroAbecedario);
 
 return 0;
 }
 
+
+void ordenaTablaHuffman( datosTablaHuffman tablaHuffman[], int tamano) {
+    for (int i = 0; i < tamano - 1; i++) {
+        for (int j = 0; j < tamano - i - 1; j++) {
+            // Compara las longitudes de los códigos y realiza el intercambio si es necesario
+            if (strlen(tablaHuffman[j].codigo) > strlen(tablaHuffman[j + 1].codigo)) {
+                intercambiar(&tablaHuffman[j], &tablaHuffman[j + 1]);
+            }
+        }
+    }
+}
+
+void intercambiar(datosTablaHuffman* a, datosTablaHuffman* b) {
+    datosTablaHuffman temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
 void muestraArbol(ArbolHuffman arbol){
 
@@ -125,12 +145,25 @@ void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]){
 
 }
 
-void creaTablaHuffman(datosTablaHuffman tablaHuffman[], unsigned int totalLetrasDiferentes, ArbolHuffman arbol){
+void creaTablaHuffman(ArbolHuffman nodo, char codigo[], int longitudCodigo,datosTablaHuffman tablaHuffman[], int* indice) {
+    if (nodo == NULL) {
+        return;
+    }
 
-    ArbolHuffman aux= arbol;
-    
+    // Si el nodo es una hoja, almacenar la información en la tabla
+    if (nodo->izq == NULL && nodo->der == NULL) {
+        tablaHuffman[*indice].letra = nodo->caracter;
+        strncpy(tablaHuffman[*indice].codigo, codigo, longitudCodigo);
+        (*indice)++;
+    }
 
+    // Recorrer el subárbol izquierdo con un "0" añadido al código
+    codigo[longitudCodigo] = '0';
+    creaTablaHuffman(nodo->izq, codigo, longitudCodigo + 1, tablaHuffman, indice);
 
+    // Recorrer el subárbol derecho con un "1" añadido al código
+    codigo[longitudCodigo] = '1';
+    creaTablaHuffman(nodo->der, codigo, longitudCodigo + 1, tablaHuffman, indice);
 }
 
 
