@@ -4,6 +4,7 @@
 #include <math.h>
 #define MAX_ABECEDARIO 256
 #define MAX_CODIGO 32
+#define MAX_STRING 1024*1024
 
 
 typedef struct NodoHuffman {
@@ -97,10 +98,10 @@ void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
 
     FILE* archivoBin= fopen(nombre_archivo_comprimido,"rb");
     FILE* archivoTxt= fopen("archivo_nuevo.txt","wt");
+    char textoCodificado[MAX_STRING];
     char letra;
-    int k=0,j=0,contador=0;
+    int k=0, contador=0;
     char byte=0;
-
     unsigned int totalLetrasDiferentes=0;
     unsigned short abecedario[MAX_ABECEDARIO]={0};
 
@@ -115,60 +116,58 @@ void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
         printf("%d ",abecedario[i]);
     }
 
-
-
+    // todo el bloque de funciones de abajo son las del main para crear la tablahuffman apartir del abecedario, deberia haber hecho una funcion
+    //aparte con todo eso pero lleva doble y triple puntero asique :D
+    //---------------------------------------------------------------------------------------------
     ArbolHuffman arrayNodos[totalLetrasDiferentes];
-
     creaArrayNodos(arrayNodos, abecedario);
-
     creaArbolHuffmanFinal(arrayNodos);
-
     datosTablaHuffman tablaHuffman[totalLetrasDiferentes];
-
     for (int i = 0 ; i< totalLetrasDiferentes; i++){ // inicializa todo en null
         for (int j = 0; j < MAX_CODIGO ; j++)
         tablaHuffman[i].codigo[j] = '\0'; 
     }
-
     char codigo[MAX_CODIGO];
     int indice = 0;
     creaTablaHuffman(arrayNodos[0], codigo, 0, tablaHuffman, &indice);
-
     ordenaTablaHuffman(tablaHuffman, totalLetrasDiferentes);
-
-        for (int i = 0 ; i< totalLetrasDiferentes ; i++){
-
+    for (int i = 0 ; i< totalLetrasDiferentes ; i++){
         printf ("%d, %c, %s \n", i, tablaHuffman[i].letra, tablaHuffman[i].codigo);
+    }
+    //---------------------------------------------------------------------------------------------
+    int u=0;
+    while (fread(&byte, sizeof(char), 1, archivoBin)){
+        for (int j = 0; j < 8; j++){
+            if ((byte&0b10000000)== 0b10000000){
+                textoCodificado[k++]='1';
+            }
+            else
+                textoCodificado[k++]='0';
+        byte<<=1;
+        }
+    }
+        
+
+    int m=0;
+    char buffer[32]={'\0'};
+
+    for (int j = 0; j < MAX_STRING; j++){
+        buffer[m++]=textoCodificado[j];
+        for (int h = 0; h < totalLetrasDiferentes; h++){
+            if(!strcmp(buffer,tablaHuffman[h].codigo)){
+                printf("%c",tablaHuffman[h].letra);
+                char bufferTexto[2]={tablaHuffman[h].letra,'\0'};
+                fprintf(archivoTxt,&bufferTexto);
+                
+                for (int f=0;f<32;f++){
+                    buffer[f]='\0';
+                }
+                m=0;
+            }
+        }
 
     }
 
-
-
-/*
-    while (fscanf(archivoTxt, "%c", &letra)!=EOF) {
-        while (tablaHuffman[k].letra!=letra){
-            k++;
-            j=0;
-        }
-        while (tablaHuffman[k].codigo[j]!='\0'){
-            
-            byte<<=1;
-            contador++;
-            
-            if (tablaHuffman[k].codigo[j++]=='1'){
-                byte|=1;
-            }
-
-            if (contador==8){
-                fwrite(&byte, sizeof(byte), 1, archivoBin);
-                byte=0;
-                contador=0;
-            }
-        }
-        k=0;   
-    }
-
-    */
     fclose(archivoBin);
     fclose(archivoTxt);
 }
@@ -183,7 +182,6 @@ void creaArchivoBinario(char *nombre_archivo, unsigned short abecedario[], datos
     int k=0,j=0,contador=0;
     char byte=0;
 
-
     if (archivoBin==NULL){
         printf("Ocurrió un problema al crear el archivo");
         exit(-2);
@@ -193,10 +191,12 @@ void creaArchivoBinario(char *nombre_archivo, unsigned short abecedario[], datos
     }
 
     while (fscanf(archivoTxt, "%c", &letra)!=EOF) {
+
         while (tablaHuffman[k].letra!=letra){
             k++;
-            j=0;
         }
+        j=0;
+
         while (tablaHuffman[k].codigo[j]!='\0'){
             
             byte<<=1;
@@ -214,10 +214,11 @@ void creaArchivoBinario(char *nombre_archivo, unsigned short abecedario[], datos
         }
         k=0;   
     }
+
+    fwrite(&byte, sizeof(byte), 1, archivoBin);
     fclose(archivoBin);
     fclose(archivoTxt);
 }
-
 
 void ordenaTablaHuffman( datosTablaHuffman tablaHuffman[], int tamano) {
     for (int i = 0; i < tamano - 1; i++) {
@@ -297,9 +298,6 @@ void creaTablaHuffman(ArbolHuffman nodo, char codigo[], int longitudCodigo,datos
     codigo[longitudCodigo] = '1';
     creaTablaHuffman(nodo->der, codigo, longitudCodigo + 1, tablaHuffman, indice);
 }
-
-
-
 
 /*void completaPunteroAbecedario(unsigned char punteroAbecedario[],unsigned short abecedario[]){
 
