@@ -26,7 +26,7 @@ NodoHuffman *nuevoNodo(char caracter, float frecuencia);
 float logaritmo(int,float);
 void lee_archivo (char*, unsigned short[], unsigned int*);
 void completaPunteroAbecedario(unsigned char[],unsigned short []);
-void creaArchivoBinario(char*, unsigned short[], datosTablaHuffman[]);
+void comprimeArchivo(char*, char* , unsigned short[], datosTablaHuffman[]);
 void creaArrayNodos(ArbolHuffman[], unsigned short[]);
 void creaArbolHuffmanFinal(ArbolHuffman arrayNodos[]);
 void muestraArbol(ArbolHuffman arbol);
@@ -34,70 +34,150 @@ void swap(ArbolHuffman *a, ArbolHuffman *b);
 void creaTablaHuffman(ArbolHuffman nodo, char* codigo, int longitudCodigo,datosTablaHuffman tablaHuffman[], int* indice);
 void ordenaTablaHuffman( datosTablaHuffman tablaHuffman[], int tamano);
 void intercambiar(datosTablaHuffman* a, datosTablaHuffman* b);
-void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido);
+void descomprimeArchivo(char *nombre_archivo,char *nombre_archivo_comprimido);
+void calculaCompresion(char* nombre_archivo, char *nombre_archivo_comprimido, unsigned short[], datosTablaHuffman[]);
+long obtenerTamanoArchivo(const char *nombreArchivo);
 
 
 int main(int argc, char *argv[]) {
    
    char* extension_txt  = ".txt";
+   char* extension_bin  = ".bin";
    char *nombre_archivo = NULL;
    char *nombre_archivo_comprimido = NULL;
    unsigned short abecedario[MAX_ABECEDARIO]={0};
    unsigned int totalLetrasDiferentes=0;
-
+   char flagD = 0 ;
+   char flagC = 1 ;
    
    for (int i = 1; i < argc; i++) {
-      char *param = argv[i];
-      if (strstr(param, extension_txt) != NULL)  //.bin
-      nombre_archivo = param;
+        char *param = argv[i];
+        if (strstr(param, extension_txt) != NULL)  //.bin
+        nombre_archivo = param;
+        if (strstr(param, extension_bin) != NULL)  //.bin
+        nombre_archivo_comprimido = param;
+        if (strstr(param, "-d") != NULL)  //.bin
+        flagD=1;
+        if (strstr(param, "-c") != NULL)  //.bin
+        flagC=1;
     }
 
-    nombre_archivo="tp3_sample0.txt";
-    nombre_archivo_comprimido="compressed.bin";
-
-    lee_archivo(nombre_archivo, abecedario, &totalLetrasDiferentes);
-
-    ArbolHuffman arrayNodos[totalLetrasDiferentes];
-
-    creaArrayNodos(arrayNodos, abecedario);
-
-    creaArbolHuffmanFinal(arrayNodos);
-
-    datosTablaHuffman tablaHuffman[totalLetrasDiferentes];
-
-
-    for (int i = 0 ; i< totalLetrasDiferentes; i++){ // inicializa todo en null
-        for (int j = 0; j < MAX_CODIGO ; j++)
-        tablaHuffman[i].codigo[j] = '\0'; 
+    if (flagD == 1 && flagC ==1){
+        printf("elija solo una opcion c o d");
+        exit(-100);
     }
- 
-    char codigo[MAX_CODIGO];
-    int indice = 0;
-    creaTablaHuffman(arrayNodos[0], codigo, 0, tablaHuffman, &indice);
-
-    ordenaTablaHuffman(tablaHuffman, totalLetrasDiferentes);
-
-    for (int i = 0 ; i< totalLetrasDiferentes ; i++){
-
-        printf ("%d, %c, %s \n", i, tablaHuffman[i].letra, tablaHuffman[i].codigo);
-
+    if (flagD){
+        descomprimeArchivo(nombre_archivo, nombre_archivo_comprimido);
     }
 
+        lee_archivo(nombre_archivo, abecedario, &totalLetrasDiferentes);
 
-   creaArchivoBinario(nombre_archivo,abecedario,tablaHuffman);
+        ArbolHuffman arrayNodos[totalLetrasDiferentes];
 
-   creaArchivoTexto(nombre_archivo, nombre_archivo_comprimido);
+        creaArrayNodos(arrayNodos, abecedario);
 
-   //creaArchivoTexto();
+        creaArbolHuffmanFinal(arrayNodos);
+
+        datosTablaHuffman tablaHuffman[totalLetrasDiferentes];
+
+
+        for (int i = 0 ; i< totalLetrasDiferentes; i++){ // inicializa todo en null
+            for (int j = 0; j < MAX_CODIGO ; j++)
+            tablaHuffman[i].codigo[j] = '\0'; 
+        }
+    
+        char codigo[MAX_CODIGO];
+        int indice = 0;
+        creaTablaHuffman(arrayNodos[0], codigo, 0, tablaHuffman, &indice);
+
+        ordenaTablaHuffman(tablaHuffman, totalLetrasDiferentes);
+
+
+    if (flagC){
+        comprimeArchivo(nombre_archivo, nombre_archivo_comprimido,abecedario,tablaHuffman);
+    }
+
+
+    calculaCompresion(nombre_archivo,nombre_archivo_comprimido, abecedario, tablaHuffman);
 
 return 0;
 }
 
+void calculaCompresion(char* nombre_archivo, char *nombre_archivo_comprimido, unsigned short abecedario[], datosTablaHuffman tablaHuffman[]){
 
-void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
+    float entropia=0;
+    int cantidadLetras=0;
+    int cantidadLetrasDiferentes=0;
+    float longitudMedia=0;
+    // Obtiene y muestra el tamaño del archivo de texto
+    long tamanoTexto = obtenerTamanoArchivo(nombre_archivo);
+    if (tamanoTexto != -1) {
+        printf("El tamaño del archivo de texto es: %ld bytes\n", tamanoTexto);
+    }
+
+    // Obtiene y muestra el tamaño del archivo binario
+    long tamanoBinario = obtenerTamanoArchivo(nombre_archivo_comprimido);
+    if (tamanoBinario != -1) {
+        printf("El tamaño del archivo binario es: %ld bytes\n", tamanoBinario);
+    }
+
+    printf("La tasa de compresion es %f\n\n", tamanoTexto/(float)tamanoBinario);
+
+    for(int i=0; i<MAX_ABECEDARIO;i++){
+        cantidadLetras+=abecedario[i];
+        if(abecedario[i]!=0)
+            cantidadLetrasDiferentes++;
+    }
+
+    for(int i=0;i<MAX_ABECEDARIO;i++){
+        if(abecedario[i]!=0)
+         entropia+= (abecedario[i]/(float)cantidadLetras)*log2(cantidadLetras/(float)abecedario[i]);
+    }
+
+    printf("La entropia es %f bits\n", entropia);
+
+    for(int i=0; i<cantidadLetrasDiferentes;i++){
+        longitudMedia+=(float)strlen(tablaHuffman[i].codigo)*(float)(abecedario[tablaHuffman[i].letra]/(float)(cantidadLetras));
+    }
+
+    printf("La longitud media del codigo es %f\n",longitudMedia);
+
+    printf("El rendimiento es %0.2f%% y la redundancia es %0.2f%%",entropia*100/longitudMedia, 100-(entropia*100/longitudMedia));
+}
+
+long obtenerTamanoArchivo(const char *nombreArchivo) {
+    FILE *archivo;
+    long tamano;
+
+    // Abre el archivo en modo lectura ('r')
+    archivo = fopen(nombreArchivo, "rb");
+
+    if (archivo == NULL) {
+        perror("Error al abrir el archivo");
+        return -1; // Retorna -1 en caso de error
+    }
+
+    // Coloca el puntero al final del archivo y obtén su posición (tamaño)
+    fseek(archivo, 0, SEEK_END);
+    tamano = ftell(archivo);
+
+    // Cierra el archivo
+    fclose(archivo);
+
+    return tamano;
+}
+
+
+void descomprimeArchivo(char *nombre_archivo,char *nombre_archivo_comprimido){
 
     FILE* archivoBin= fopen(nombre_archivo_comprimido,"rb");
-    FILE* archivoTxt= fopen("archivo_nuevo.txt","wt");
+
+    if (archivoBin == NULL){
+        printf("No se pudo encontrar o abrir el archivo %s",nombre_archivo_comprimido);
+        exit(404);
+    }
+
+    FILE* archivoTxt= fopen(nombre_archivo,"wt");
     char textoCodificado[MAX_STRING];
     char letra;
     int k=0, contador=0;
@@ -110,10 +190,6 @@ void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
         if (abecedario[i]!=0){
             totalLetrasDiferentes++;
         }
-    }
-
-    for (int i =0; i<MAX_ABECEDARIO;i++){
-        printf("%d ",abecedario[i]);
     }
 
     // todo el bloque de funciones de abajo son las del main para crear la tablahuffman apartir del abecedario, deberia haber hecho una funcion
@@ -131,9 +207,7 @@ void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
     int indice = 0;
     creaTablaHuffman(arrayNodos[0], codigo, 0, tablaHuffman, &indice);
     ordenaTablaHuffman(tablaHuffman, totalLetrasDiferentes);
-    for (int i = 0 ; i< totalLetrasDiferentes ; i++){
-        printf ("%d, %c, %s \n", i, tablaHuffman[i].letra, tablaHuffman[i].codigo);
-    }
+
     //---------------------------------------------------------------------------------------------
     int u=0;
     while (fread(&byte, sizeof(char), 1, archivoBin)){
@@ -155,7 +229,6 @@ void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
         buffer[m++]=textoCodificado[j];
         for (int h = 0; h < totalLetrasDiferentes; h++){
             if(!strcmp(buffer,tablaHuffman[h].codigo)){
-                printf("%c",tablaHuffman[h].letra);
                 char bufferTexto[2]={tablaHuffman[h].letra,'\0'};
                 fprintf(archivoTxt,&bufferTexto);
                 
@@ -172,12 +245,11 @@ void creaArchivoTexto(char *nombre_archivo,char *nombre_archivo_comprimido){
     fclose(archivoTxt);
 }
 
+void comprimeArchivo(char *nombre_archivo, char* nombre_archivo_comprimido, unsigned short abecedario[], datosTablaHuffman tablaHuffman[] ){
 
-
-void creaArchivoBinario(char *nombre_archivo, unsigned short abecedario[], datosTablaHuffman tablaHuffman[] ){
-
-    FILE* archivoBin= fopen("compressed.bin","wb");
+    
     FILE* archivoTxt= fopen(nombre_archivo,"rt");
+    FILE* archivoBin= fopen(nombre_archivo_comprimido,"wb");
     char letra;
     int k=0,j=0,contador=0;
     char byte=0;
@@ -328,7 +400,7 @@ void lee_archivo (char *nombre_archivo, unsigned short abecedario[],unsigned int
     unsigned char letra;
     FILE* archivo = fopen(nombre_archivo,"rt");
     if (archivo == NULL) {
-        printf("No se pudo abrir el archivo");
+        printf("No se pudo encontrar o leer el archivo %s",nombre_archivo);
         exit (-1);
     }
     while (fscanf(archivo, "%c", &letra)!=EOF) {
